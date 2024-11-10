@@ -4,6 +4,7 @@ using System.IO;
 using System.Media;
 using Tao.Sdl;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AlienGame
 {
@@ -19,12 +20,17 @@ namespace AlienGame
 
         static GameStage gamestage;
 
+        static Font titleFont;
         static Font menuFont;
         static Font smallInfoFont;
 
         static short menuOptions = 0;
         static short　dynamicTitle = 0;
-        static short fontSize = 30; 
+        static short fontSize = 30;
+
+        static List<Position> collitionList = new List<Position>();
+        static Image collitionImage = Engine.LoadImage("assets/objects/collition_image.png");
+        private static int updateCount;
 
         static void Main(string[] args)
         {
@@ -32,6 +38,7 @@ namespace AlienGame
             gamestage = GameStage.Menu;
             try
             {
+                titleFont = Engine.LoadFont("assets/fonts/Magnite.otf", 50);
                 menuFont = Engine.LoadFont("assets/fonts/Magnite.otf", 30);
                 smallInfoFont = Engine.LoadFont("assets/fonts/Magnite.otf", 10);
             }
@@ -39,15 +46,13 @@ namespace AlienGame
             { 
                 System.Console.WriteLine(e.Message);
             }
-            
-
           
             while (true)
             {
                 CheckInputs();
                 Update();
                 Render();
-                Sdl.SDL_Delay(20);  
+                Sdl.SDL_Delay(50);  
             }
         }
 
@@ -101,7 +106,6 @@ namespace AlienGame
 
                     if (Engine.KeyPress(Engine.KEY_RIGHT))
                     {
-                        System.Console.WriteLine(player.posX);
                         if (player.posX < 1035)
                         {
                             player.posX += player.speed;
@@ -126,18 +130,18 @@ namespace AlienGame
 
                     if (Engine.KeyPress(Engine.KEY_SHIFT))
                     {
-                        player.speed = 20;
+                        player.speed = 40;
                     }
                     else
                     {
-                        player.speed = 10;
+                        player.speed = 20;
                     }
 
                     if (Engine.KeyPress(Engine.KEY_ESP))
                     {
                         if (player.ammo > 0) 
                         {
-                            player.ammoList.Add(new Bullet(player.posX, player.posY, Engine.LoadImage("assets/objects/bullet_101.png")));
+                            player.ammoList.Add(new Bullet(player.posX, player.posY + 18));
                             player.ammo--;
                         }
                     }
@@ -149,23 +153,118 @@ namespace AlienGame
 
         static void Update()
         {
+            updateCount++;
             if (player.ammoList.Count > 0)
             {
                 for (var i = 0; i < player.ammoList.Count; i++)
                 {
-                    if (player.ammoList[i].posX > 1080) 
+                    var bullet = player.ammoList[i];
+                    if (bullet.posX > 1080) 
                     {
                         player.ammoList.RemoveAt(i);
                     } 
                     else
                     {
-                        var newPosX = player.ammoList[i];
-                        newPosX.posX += 20;
+                        var newPosX = bullet;
+                        newPosX.posX += 30;
                         player.ammoList[i] = newPosX;
-                    }
+                        for (var j = 0; j < planets.Length; j++)
+                        {
+                            var planet = planets[j];
+
+                            IEnumerable<int> planetRangeY = Enumerable.Range(planet.posY, 100);
+                            if (planetRangeY.Contains(bullet.posY))
+                            {
+                                IEnumerable<int> planetRangeX = Enumerable.Range(planet.posX, 100);
+                                if (planetRangeX.Contains(bullet.posX)) 
+                                {
+                                    collitionList.Add(new Position(bullet.posX, bullet.posY));
+                                    if (planet.aliensList != null & planet.aliensList.Count == 0)
+                                    {
+                                        planet.aliensList = new List<Alien> { new Alien(planet.posX + 50, planet.posY + 50) };
+                                    } 
+                                    planet.health -= 5;
+                                    planets[j] = planet;
+                                    try
+                                    {
+                                        player.ammoList.RemoveAt(i);
+                                        if (planet.health == 0) 
+                                        {
+                                            planets[j] = new Planet();
+                                        }
+                                    }
+                                    catch (ArgumentOutOfRangeException e) 
+                                    {
+                                        player.ammoList = new List<Bullet>();
+                                    }
+                                    catch (Exception e) 
+                                    {
+                                        System.Console.WriteLine(e);
+                                    }
+                                }
+                            }
+
+                            var updatedList = planet.aliensList;
+                            foreach (var alien in planet.aliensList)
+                            {
+                                IEnumerable<int> alienRangeY = Enumerable.Range(alien.posY, 56);
+                                if (alienRangeY.Contains(bullet.posY))
+                                {
+                                    if (alien.posX == bullet.posX)
+                                    {
+                                        collitionList.Add(new Position(bullet.posX, bullet.posY));
+                                        updatedList.Remove(alien);
+                                    }
+                                }
+                            }
+                            planet.aliensList = updatedList;
+                        }
+                    }   
                     
                 }
             }
+            foreach (var planet in planets) 
+            {
+                if (planet.aliensList != null && planet.aliensList.Count > 0)
+                {
+                    var newAlienList = new List<Alien>();
+                    foreach (var alien in planet.aliensList)
+                    {
+                        var uAlien = alien;
+                        uAlien.posX -= 35;
+                        newAlienList.Add(uAlien);
+                    }
+                    planet.aliensList.Clear();
+                    planet.aliensList.AddRange(newAlienList);
+                    if (updateCount % 25 == 0)
+                    {
+                        planet.aliensList.Add(new Alien(planet.posX + 50, planet.posY + 50));
+                    } 
+                }
+
+                foreach (var alien in planet.aliensList)
+                {
+                    IEnumerable<int> playerRangeY = Enumerable.Range(player.posY - 37, 37);
+                    if (playerRangeY.Contains(alien.posY + 25))
+                    {
+                        IEnumerable<int> playerRangeX = Enumerable.Range(player.posX, 44);
+                        if (playerRangeX.Contains(alien.posX))
+                        {
+                            player.tripulation--;
+                            collitionList.Add(new Position(player.posX, player.posY));
+                            if (player.tripulation == 0)
+                            {
+                                gamestage = GameStage.GameOverScreen;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool isEven(int v)
+        {
+            return v % 2 == 0;
         }
 
         static void Render()
@@ -176,7 +275,7 @@ namespace AlienGame
             {
                 case GameStage.Menu:
                     Engine.Draw(bgmenu, 0, 0);
-                    Engine.DrawText("Alien returns", 400, 150, 255, 0, 0, menuFont);
+                    Engine.DrawText("Alien returns", 300, 150, 255, 0, 0, titleFont);
                     if (menuOptions == 0) 
                     {
                         Engine.DrawText("Start", 450, 250, 255, 255, 255, menuFont);
@@ -203,13 +302,28 @@ namespace AlienGame
                         Engine.DrawText("Quit game", 450, 350, 255, 0, 0, menuFont);
                     }
                     break;
+                case GameStage.GameOverScreen:
+                    Engine.Draw(bgmenu, 0, 0);
+                    Engine.DrawText("Game Over!!", 350, 300, 255, 0, 0, titleFont);
+                    break;
                 case GameStage.FirstLevel:
                     Engine.Draw(bg1, 0, 0);
                     Engine.Draw(player.image, player.posX, player.posY);
                     for (int i = 0; i < planets.Length; i++)
                     {
                         Planet planet = planets[i];
-                        Engine.Draw(planet.image, planet.posX, planet.posY);
+                        if (planet.image != null) 
+                        {
+                            Engine.Draw(planet.image, planet.posX, planet.posY);
+                            if (planet.aliensList.Count > 0)
+                            {
+                                foreach (var alien in planet.aliensList)
+                                {
+                                    Engine.Draw(alien.image, alien.posX, alien.posY);
+                                }
+                            }
+                        }
+
                     }
                     if (dynamicTitle < 50)
                     {
@@ -221,13 +335,24 @@ namespace AlienGame
                         Engine.DrawText("Go!", 500, 350, 255, 0, 0, menuFont);
                         dynamicTitle++; 
                     }
+                    Engine.DrawText("Tripulation: " + player.tripulation, 950, 690, 255, 255, 255, smallInfoFont);
                     Engine.DrawText("Ammo: " + player.ammo, 1000, 700, 255, 255, 255, smallInfoFont);
+                    
                     if (player.ammoList.Count > 0)
                     {
                         foreach (var bullet in player.ammoList)
                         {
                             Engine.Draw(bullet.image, bullet.posX, bullet.posY);
                         }
+                    }
+                    if (collitionList.Count > 0)
+                    {
+                        foreach (var collition in collitionList) 
+                        {
+                            Engine.Draw(collitionImage, collition.posX, collition.posY);
+                        }
+
+                        collitionList.Clear();
                     }
                     break;
             }
@@ -241,7 +366,7 @@ namespace AlienGame
             Player player = new Player();
             player.posX = 0;
             player.posY = 500;
-            player.speed = 10;
+            player.speed = 20;
             player.health = 100;
             player.ammoList = new List<Bullet>();
             player.ammo = 500;
@@ -276,7 +401,7 @@ namespace AlienGame
                 } */
                 
                 planet.health = 100;
-                planet.aliens = rand.Next(0, 20);
+                planet.aliensList = new List<Alien>();
                 planet.image = new Image(files[rand.Next(0, files.Length)]);
                 checkPlanet = true;
                 while(checkPlanet) 

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlienGame
-{
+namespace AlienGame { 
+
     public struct Player
     {
         public int posX;
@@ -18,13 +18,25 @@ namespace AlienGame
         public int health;
     }
 
+    public struct Position 
+    { 
+        public int posX; 
+        public int posY; 
+    
+        public Position(int x, int y)
+        {
+            this.posX = x;
+            this.posY = y; 
+        }
+    }
+
     public struct Planet
     {
         public int posX;
         public int posY;
         public Image image;
         public Goods goods;
-        public int aliens;
+        public List<Alien> aliensList;
         public int health;
     }
 
@@ -41,11 +53,25 @@ namespace AlienGame
         public int posY;
         public Image image;
 
-        public Bullet(int posX, int posY, Image image) 
+        public Bullet(int posX, int posY) 
         { 
             this.posX = posX;
             this.posY = posY;
-            this.image = image;
+            this.image = Engine.LoadImage("assets/objects/bullet_101.png");
+        }
+    }
+
+    public struct Alien 
+    {
+        public int posX;
+        public int posY;
+        public Image image;
+
+        public Alien(int posX, int posY)
+        {
+            this.posX = posX;
+            this.posY = posY;
+            this.image = Engine.LoadImage("assets/objects/alien_image.png");
         }
     }
 }
