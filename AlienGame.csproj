@@ -51,6 +51,9 @@
     <Compile Include="Engine\Engine.cs" />
     <Compile Include="Engine\Image.cs" />
     <Compile Include="GameStage.cs" />
+    <Compile Include="model\GameOverScreen.cs" />
+    <Compile Include="model\Level1.cs" />
+    <Compile Include="model\WinScreen.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -71,13 +74,19 @@
     <Content Include="assets\backgrounds\background_menu.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="assets\backgrounds\background_second_level.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="assets\objects\alien_image.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\objects\bullet_101.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="assets\objects\collition_image.png">
+    <Content Include="assets\objects\collision_image.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\objects\game_over.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\planets\%28Small%29 Rocky 1.png">
