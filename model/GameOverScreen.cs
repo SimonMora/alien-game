@@ -4,14 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using utils;
 
-namespace MyGame.model
+namespace model
 {
     internal class GameOverScreen
     {
-        private static Image bgImage = Engine.LoadImage("assets/backgrounds/background_menu.png");
         private static Image gameOverImg = Engine.LoadImage("assets/objects/game_over.png");
-        private static Font titleFont = Engine.LoadFont("assets/fonts/Magnite.otf", 50);
+        private static Font titleFont = Constants.TITLE_FONT;
+     
         public event EventHandler<GameStageEventArgs> StageChanged;
 
         public void CheckInputs()
@@ -22,15 +23,15 @@ namespace MyGame.model
             }
         }
 
-        public static void Update()
+        public void Update()
         {
 
         }
         
-        public static void Render()
+        public void Render()
         {
-            Engine.Draw(bgImage, 0, 0);
-            Engine.DrawText("Game Over..", 350, 280, 255, 0, 0, titleFont);
+            Engine.Draw(Constants.MENU_BACKGROUND, 0, 0);
+            Engine.DrawText("Game Over..", 400, 280, 255, 0, 0, titleFont);
             Engine.Draw(gameOverImg, 0, 0);
         }
     }

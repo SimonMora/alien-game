@@ -4,6 +4,7 @@ using System.Drawing;
 using Tao.Sdl;
 using static System.Net.Mime.MediaTypeNames;
 using System.Collections.Generic;
+using utils;
 
 class Engine
 {
@@ -12,8 +13,8 @@ class Engine
 
     public static void Initialize()
     {
-        ancho = 1080;
-        alto = 720;
+        ancho = Constants.SCREEN_WIDTH;
+        alto = Constants.SCREEN_HEIGHT;
         int colores = 24;
 
         int flags = (Sdl.SDL_HWSURFACE | Sdl.SDL_DOUBLEBUF | Sdl.SDL_ANYFORMAT);

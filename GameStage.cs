@@ -8,6 +8,6 @@
         ThirdLevel = 3,
         WinScreen = 4,
         GameOverScreen = 5,
-        OptionsMenu = 6,
+        Tutorial = 6,
     }
 }
